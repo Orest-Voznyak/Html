@@ -58,7 +58,7 @@ $app->get('/db/', function() use($app) {
 
 $app->get('/cowsay', function() use($app) {
   $app['monolog']->addDebug('cowsay');
-  return "<pre>".\Cowsayphp\Cow::say("Cool beans4")."</pre>";
+  return "<pre>".\Cowsayphp\Cow::say("Cool beans5")."</pre>";
 });
 
 $app->run();
