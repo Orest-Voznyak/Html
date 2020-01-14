@@ -1,59 +1,30 @@
 <?php
-namespace Cowsayphp\Test;
-use Cowsayphp\AbstractAnimal;
-use Cowsayphp\Cow;
-use Cowsayphp\Farm;
-class CowTest extends \PHPUnit_Framework_TestCase
-{
-    public function cowDataProvider()
-    {
-        return array(
-            array(
-                "this is a text\nwith lines",
-                "/ this is a text \\          \n\ with lines     /          "
-            ),
-            array(
-                "this is a text",
-                "< this is a text >          "
-            ),
-            array(
-                "this is a looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong line",
-                "/ this is a                                                                \\\n".
-                "| looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong |\n".
-                "\ line                                                                     /"
-            ),
-            array(
-                "short",
-                "< short >                   "
-            )
-        );
-    }
-    /**
-     * Testing speech bubbles
-     * @dataProvider cowDataProvider
-     */
-    public function testSpeechBubble($text, $bubble)
-    {
-        /** @var AbstractAnimal $cow */
-        $cow = Farm::create(\Cowsayphp\Farm\Cow::class);
-        $message = $cow->getSpeechBubble($text);
-        $this->assertEquals($message, $bubble);
-    }
-    /**
-     * Testing simple cow
-     * @dataProvider cowDataProvider
-     */
-    public function testSpeak($text, $bubble)
-    {
-        $testcow = <<<COW
-{{bubble}}
-        \   ^__^            
-         \  (oo)\_______    
-            (__)\       )\/\
-                ||----w |   
-                ||     ||   
-COW;
-        $testcow = str_replace('{{bubble}}', $bubble, $testcow);
-        $this->assertEquals($testcow, Cow::say($text));
-    }
-}
+
+require('../vendor/autoload.php');
+
+$app = new Silex\Application();
+$app['debug'] = true;
+
+// Register the monolog logging service
+$app->register(new Silex\Provider\MonologServiceProvider(), array(
+  'monolog.logfile' => 'php://stderr',
+));
+
+// Register view rendering
+$app->register(new Silex\Provider\TwigServiceProvider(), array(
+    'twig.path' => __DIR__.'/views',
+));
+
+// Our web handlers
+
+$app->get('/', function() use($app) {
+  $app['monolog']->addDebug('logging output.');
+  return $app['twig']->render('index.twig');
+});
+
+$app->get('/cowsay', function() use($app) {
+  $app['monolog']->addDebug('cowsay');
+  return "<pre>".\Cowsayphp\Cow::say("Cool beans")."</pre>";
+});
+
+$app->run();
